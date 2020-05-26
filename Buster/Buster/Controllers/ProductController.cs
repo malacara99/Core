@@ -1,6 +1,7 @@
 ﻿using Buster.Contexts;
 using Buster.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,12 +21,29 @@ namespace Buster.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Product>> Get() 
+        public async Task<ActionResult<List<Product>>> Get() 
         {
-            var products = context.Products.ToList();
+            return await context.Products.ToListAsync();
+        }
 
+        [HttpGet("{Id}", Name ="ObtenerProducto")]
+        public async Task<ActionResult<Product>>Get(int id) 
+        {
+            var product = await context.Products.FirstOrDefaultAsync(x => x.Id == id);
+            if (product == null) 
+            {
+                return NotFound(); // 404
+            }
 
-            return Ok(products);
+            return product;
+        }
+
+        [HttpPost]
+        public ActionResult Post([FromBody] Product product) 
+        {
+            context.Products.Add(product);
+            context.SaveChangesAsync();
+            return new CreatedAtRouteResult("ObtenerProducto", new { id = product.Id }, product);
         }
     }
 }
