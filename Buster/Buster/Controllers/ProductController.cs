@@ -39,11 +39,38 @@ namespace Buster.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post([FromBody] Product product) 
+        public  ActionResult Post([FromBody] Product product) 
         {
             context.Products.Add(product);
             context.SaveChangesAsync();
             return new CreatedAtRouteResult("ObtenerProducto", new { id = product.Id }, product);
+        }
+
+        [HttpPut]
+        public ActionResult Put(int Id, [FromBody]Product product) 
+        {
+            if(Id != product.Id) 
+            {
+                return BadRequest(); 
+            }
+
+            context.Entry(product).State = EntityState.Modified;
+            context.SaveChangesAsync();
+            return Ok();
+
+        }
+
+        [HttpDelete]
+        public async Task<ActionResult<Product>> Delete(int Id) 
+        {
+            var product = await context.Products.FirstOrDefaultAsync(x => x.Id == Id);
+            if (product == null) 
+            {
+                return NotFound();
+            }
+            context.Products.Remove(product);
+            context.SaveChanges();
+            return product;
         }
     }
 }

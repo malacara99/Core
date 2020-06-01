@@ -6,14 +6,12 @@ using System.Threading.Tasks;
 
 namespace Buster.Entities
 {
-    public class Product
+    public class Category
     {
         public int Id { get; set; }
-        [Required]
-        public string Sku { get; set; }
+
         [Required]
         public string Name { get; set; }
-        public string Description { get; set; }
-        public Category Categories { get; set; }
+        public DateTime RegisterDate { get; set; }
     }
 }
