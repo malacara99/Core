@@ -23,13 +23,13 @@ namespace Buster.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Product>>> Get() 
         {
-            return await context.Products.ToListAsync();
+            return await context.Products.Include(x=>x.Category).ToListAsync();
         }
 
         [HttpGet("{Id}", Name ="ObtenerProducto")]
         public async Task<ActionResult<Product>>Get(int id) 
         {
-            var product = await context.Products.FirstOrDefaultAsync(x => x.Id == id);
+            var product = await context.Products.Include(x => x.Category).FirstOrDefaultAsync(x => x.Id == id);
             if (product == null) 
             {
                 return NotFound(); // 404

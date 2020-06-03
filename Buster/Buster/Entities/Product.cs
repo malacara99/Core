@@ -14,6 +14,8 @@ namespace Buster.Entities
         [Required]
         public string Name { get; set; }
         public string Description { get; set; }
-        public Category Categories { get; set; }
+        [Required]
+        public int CategoryId { get; set; }
+        public Category Category { get; set; }
     }
 }
