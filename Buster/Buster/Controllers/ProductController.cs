@@ -1,5 +1,7 @@
-﻿using Buster.Contexts;
+﻿using AutoMapper;
+using Buster.Contexts;
 using Buster.Entities;
+using Buster.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -14,10 +16,12 @@ namespace Buster.Controllers
     public class ProductController : ControllerBase
     {
         private readonly ApplicationDbContext context;
+        private readonly IMapper mapper;
 
-        public ProductController(ApplicationDbContext context)
+        public ProductController(ApplicationDbContext context,IMapper mapper)
         {
             this.context = context;
+            this.mapper = mapper;
         }
 
         [HttpGet]
@@ -27,7 +31,7 @@ namespace Buster.Controllers
         }
 
         [HttpGet("{Id}", Name ="ObtenerProducto")]
-        public async Task<ActionResult<Product>>Get(int id) 
+        public async Task<ActionResult<ProductDTO>>Get(int id) 
         {
             var product = await context.Products.Include(x => x.Category).FirstOrDefaultAsync(x => x.Id == id);
             if (product == null) 
@@ -35,19 +39,20 @@ namespace Buster.Controllers
                 return NotFound(); // 404
             }
 
-            return product;
+            var productDTO = mapper.Map<ProductDTO>(product);
+            return productDTO;
         }
 
         [HttpPost]
-        public  ActionResult Post([FromBody] Product product) 
+        public async Task<ActionResult> Post([FromBody] Product product) 
         {
             context.Products.Add(product);
-            context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return new CreatedAtRouteResult("ObtenerProducto", new { id = product.Id }, product);
         }
 
         [HttpPut]
-        public ActionResult Put(int Id, [FromBody]Product product) 
+        public async Task<ActionResult> Put(int Id, [FromBody]Product product) 
         {
             if(Id != product.Id) 
             {
@@ -55,7 +60,7 @@ namespace Buster.Controllers
             }
 
             context.Entry(product).State = EntityState.Modified;
-            context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return Ok();
 
         }
@@ -69,7 +74,7 @@ namespace Buster.Controllers
                 return NotFound();
             }
             context.Products.Remove(product);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
             return product;
         }
     }
