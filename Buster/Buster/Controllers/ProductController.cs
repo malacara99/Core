@@ -2,6 +2,7 @@
 using Buster.Contexts;
 using Buster.Entities;
 using Buster.Models;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -25,9 +26,12 @@ namespace Buster.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Product>>> Get() 
+        public async Task<ActionResult<List<ProductDTO>>> Get() 
         {
-            return await context.Products.Include(x=>x.Category).ToListAsync();
+            var products = await context.Products.Include(x=>x.Category).ToListAsync();
+            var productDto = mapper.Map<List<ProductDTO>>(products);
+
+            return productDto;
         }
 
         [HttpGet("{Id}", Name ="ObtenerProducto")]
@@ -44,12 +48,15 @@ namespace Buster.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] Product product) 
+        public async Task<ActionResult> Post([FromBody] ProductCreationDTO productCreation) 
         {
+            var product = mapper.Map<Product>(productCreation);
             context.Products.Add(product);
             await context.SaveChangesAsync();
-            return new CreatedAtRouteResult("ObtenerProducto", new { id = product.Id }, product);
+            var productDTO = mapper.Map<ProductDTO>(product);
+            return new CreatedAtRouteResult("ObtenerProducto", new { id = product.Id }, productDTO);
         }
+
 
         [HttpPut]
         public async Task<ActionResult> Put(int Id, [FromBody]Product product) 
@@ -64,6 +71,17 @@ namespace Buster.Controllers
             return Ok();
 
         }
+        [HttpPut("PutDTO")]//Actualización completa, se requiere el usuario envie todos los datos del recurso para  act
+        public async Task<ActionResult> PutDTO(int id, [FromBody] ProductCreationDTO productUpdate)
+        {
+            var product = mapper.Map<Product>(productUpdate);
+            product.Id = id;
+            context.Entry(product).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            return NoContent();
+
+        }
+
 
         [HttpDelete]
         public async Task<ActionResult<Product>> Delete(int Id) 
@@ -76,6 +94,32 @@ namespace Buster.Controllers
             context.Products.Remove(product);
             await context.SaveChangesAsync();
             return product;
+        }
+
+
+        [HttpPatch("{Id}")]
+        public async Task<ActionResult> Patch(int id, JsonPatchDocument<ProductCreationDTO> jsonPatch) 
+        {
+            var productDb = await context.Products.FirstOrDefaultAsync(x => x.Id == id);
+            if (productDb == null) 
+            {
+                return NotFound();
+            }
+            var productDTO = mapper.Map<ProductCreationDTO>(productDb);
+
+            jsonPatch.ApplyTo(productDTO, ModelState);
+
+            mapper.Map(productDTO, productDb);
+            var isValid = TryValidateModel(productDb);
+
+            if (!isValid) 
+            {
+                BadRequest(ModelState);
+            }
+
+            
+            await context.SaveChangesAsync();
+            return NoContent();
         }
     }
 }

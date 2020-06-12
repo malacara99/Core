@@ -34,8 +34,14 @@ namespace Buster
 
             services.AddAutoMapper(configuration=> {
                 configuration.CreateMap<Product, ProductDTO>();
+                configuration.CreateMap<Category, CategoryDTO>();
+                configuration.CreateMap<ProductCreationDTO,Product>().ReverseMap();
+
             },
             typeof(Startup));
+
+
+            
 
             services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnectionString")));
