@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using AutoMapper;
 using Buster.Contexts;
+using Buster.Data;
 using Buster.Entities;
 using Buster.Models;
 using Microsoft.AspNetCore.Builder;
@@ -46,6 +47,7 @@ namespace Buster
             services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DefaultConnectionString")));
 
+            services.AddScoped<PromotionRepository>();
             services.AddControllers()
                 .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 

@@ -86,14 +86,14 @@ namespace Buster.Controllers
         [HttpDelete]
         public async Task<ActionResult<Product>> Delete(int Id) 
         {
-            var product = await context.Products.FirstOrDefaultAsync(x => x.Id == Id);
-            if (product == null) 
+            var productId = await context.Products.Select(x=> x.Id).FirstOrDefaultAsync(x => x == Id);
+            if (productId == default(int)) 
             {
                 return NotFound();
             }
-            context.Products.Remove(product);
+            context.Products.Remove(new Product {Id = productId });
             await context.SaveChangesAsync();
-            return product;
+            return NoContent();
         }
 
 
